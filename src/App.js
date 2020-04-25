@@ -10,7 +10,7 @@ import {
 
 import { GetStoreData } from './helpers/General';
 import MapView from './components/MapView';
-// import SearchAddress from './components/SearchAddress';
+import SearchAddress from './components/SearchAddress';
 import { debounce } from 'debounce';
 import MapBoxAPI from './services/MapBoxAPI';
 import SafePathsAPI from './services/API';
@@ -71,6 +71,7 @@ const App = ({
       verifiedLocation.latitude = currentLocation.latitude;
     }
     MapBoxAPI.search(text, verifiedLocation, verifiedBounds).then(result => {
+      debugger;
       if (result && result.data && result.data.predictions) {
         setSearchedResult(result.data.predictions);
       }
@@ -211,28 +212,28 @@ const App = ({
   //   return <AppInfo setModal={setModal} modal={modal} />;
   // };
   //
-  // const renderSearchInput = () => {
-  //   if (modal) return null;
-  //   return (
-  //     <SearchAddress
-  //       textInputRef={textInputRef}
-  //       isSearching={isSearching}
-  //       setIsSearching={changeSearchingState}
-  //       onChangeDestination={onChangeDestination}
-  //       modal={modal}
-  //       setModal={setModal}
-  //       goToMyLocation={getInitialState}
-  //     />
-  //   );
-  // };
+  const renderSearchInput = () => {
+    if (modal) return null;
+    return (
+      <SearchAddress
+        textInputRef={textInputRef}
+        isSearching={isSearching}
+        setIsSearching={changeSearchingState}
+        onChangeDestination={onChangeDestination}
+        modal={modal}
+        setModal={setModal}
+        goToMyLocation={() => {return}}
+      />
+    );
+  };
 
   return (
     <div>
       <MapView userMarkers={userMarkers} />
-      {/*{renderSearchInput()}*/}
+      {renderSearchInput()}
       {/*{renderBlacklistModal()}*/}
       {/*{renderActivityModal()}*/}
-      {/*{renderSearchResults()}*/}
+      {renderSearchResults()}
       {/*{renderAppInfoModal()}*/}
       {/*{renderBottomPanel()}*/}
       {/*{renderLocationDetailPanel()}*/}

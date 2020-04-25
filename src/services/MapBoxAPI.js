@@ -45,26 +45,21 @@ class API {
   }
 
   async search(text, currentLocation) {
-    const searchCall = sessionToken => {
-      const params = {
-        input: text,
-        location: `${currentLocation.latitude},${currentLocation.longitude}`,
-        key: process.env.REACT_APP_GOOGLE_TOKEN,
-        sessiontoken: sessionToken,
-      };
+    let autocomplete;
+    const {longitude, latitude} = currentLocation;
+    const cutLongitude = Number(Number(longitude).toFixed(1))
+    const cutLatitude = Number(Number(latitude).toFixed(1))
+    const defaultBounds = new window.google.maps.LatLngBounds(
+      new window.google.maps.LatLng(cutLatitude - 0.1, cutLongitude + 0.1),
+      new window.google.maps.LatLng(cutLatitude - 0.1, cutLongitude + 0.1));
 
-      return this.instance.get(`/maps/api/place/autocomplete/json`, {
-        params,
-      });
+    const options = {
+      bounds: defaultBounds,
     };
-    const SessionToken = GetStoreData('SessionToken');
-    if (!SessionToken || SessionToken === 'null') {
-      const uuid = uuidv4();
-      console.log('SETTING SEARCH TOKEN ', uuid);
-      SetStoreData('SessionToken', uuid);
-      return searchCall(uuid);
+    if (window.google) {
+      autocomplete = new window.google.maps.places.Autocomplete(text, options);
     }
-    return searchCall(SessionToken);
+    debugger;
   }
 }
 

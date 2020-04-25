@@ -1,18 +1,51 @@
-import {
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  TextInput,
-  Animated,
-  Image,
-} from 'react-native';
-import React, { useRef, useEffect, memo } from 'react';
+import React, {memo, useState} from 'react';
 import colors from '../constants/colors';
+import styled from 'styled-components';
 
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { setMapLocation } from '../reducers/actions';
-import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
+import { getCurrentPosition } from "../services/LocationService";
+import GooglePlacesAutocomplete, { geocodeByPlaceId, getLatLng } from 'react-google-places-autocomplete';
+
+import Script from 'react-load-script';
+
+import PlacesAutocomplete from 'react-places-autocomplete';
+
+const SearchInput = styled.input`
+  margin-right: 16,
+  font-size: 14,
+  font-family: 'DMSans-Regular',
+  font-weight: '500',
+  
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  
+  ::placeholder {
+  color: #435d8b;
+  opacity: 1; /* Firefox */
+  }
+`
+
+const Container = styled.div`
+  flexDirection: 'column',
+  color: colors.PRIMARY_TEXT,
+  z-index: 999,
+  top: 0,
+  border-radius: 6,
+  margin: '0 auto',
+  width: 100vw;
+  position: relative;
+
+  display: flex;
+  flex-flow: column wrap;
+  align-items: center;
+`
 
 const SearchAddress = ({
   isSearching,
@@ -24,29 +57,12 @@ const SearchAddress = ({
   setModal,
   setMapLocation,
 }) => {
-  const opacity = useRef(new Animated.Value(0)).current;
 
-  const searchOpacity = opacity.interpolate({
-    inputRange: [0, 0.8, 1],
-    outputRange: [0, 0, 1],
-  });
-
-  const searchTranslationY = opacity.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-100, 0],
-  });
-
-  useEffect(() => {
-    Animated.timing(opacity, {
-      toValue: 1,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  }, []);
+  const [searchText, setSearchText] = useState(null);
 
   const exitSearch = () => {
     if (textInputRef && textInputRef.current) {
-      textInputRef.current.clear();
+      textInputRef.current.value = null;
     }
     setIsSearching(false);
   };
@@ -54,21 +70,21 @@ const SearchAddress = ({
   const renderCloseButton = () => {
     if (isSearching && isLogging) {
       return (
-        <TouchableOpacity
+        <div
           style={{
             alignSelf: 'center',
             padding: 4,
             marginLeft: 12,
             marginRight: 8,
           }}
-          onPress={() => {
+          onClick={() => {
             exitSearch();
           }}>
-          <Image
-            source={require('../assets/images/blue_close.png')}
+          <img
+            src={require('../assets/images/blue_close.png')}
             style={{ width: 12, height: 12, resizeMode: 'cover' }}
           />
-        </TouchableOpacity>
+        </div>
       );
     }
     return null;
@@ -77,82 +93,73 @@ const SearchAddress = ({
   const renderAppInfoIcon = () => {
     if (modal || isSearching) return null;
     return (
-      <TouchableOpacity onPress={() => setModal('info')} style={styles.appIcon}>
-        <Image
-          source={require('../assets/images/infoIcon.png')}
+      <div onClick={() => setModal('info')} style={styles.appIcon}>
+        <img
+          src={require('../assets/images/infoIcon.png')}
           style={{ width: 30, height: 30, resizeMode: 'cover' }}
         />
-      </TouchableOpacity>
+      </div>
     );
   };
 
   const renderMyLocationIcon = () => {
     if (modal || isSearching) return null;
     return (
-      <TouchableOpacity
-        onPress={() => {
-          BackgroundGeolocation.getCurrentLocation(location => {
-            const { latitude, longitude } = location;
+      <div
+        onClick={() => {
+          getCurrentPosition(location => {
+            const { coords: {latitude, longitude} } = location;
             setMapLocation([20.39, 36.56]);
             setMapLocation([longitude, latitude]);
           });
         }}
         style={styles.myLocation}>
-        <Image
-          source={require('../assets/images/myLocationIcon.png')}
+        <img
+          src={require('../assets/images/myLocationIcon.png')}
           style={{ width: 30, height: 30, resizeMode: 'cover' }}
         />
-      </TouchableOpacity>
+      </div>
     );
   };
 
+  const getPlaceDetails = (result) => {
+    if (result && result.place_id) {
+      geocodeByPlaceId(result.place_id)
+        .then(results => {
+          if (results && results.length > 0) {
+            const result = results[0];
+            getLatLng(result).then(location => {
+              setMapLocation([location.lng, location.lat]);
+            })
+          }
+        })
+        .catch(error => console.error(error));
+    }
+  }
+
   return (
-    <Animated.View
-      style={[
-        {
-          opacity: searchOpacity,
-          transform: [{ translateY: searchTranslationY }],
-        },
-        styles.container,
-      ]}>
-      <View style={styles.searchView}>
-        {renderCloseButton()}
-        <TextInput
-          ref={textInputRef}
-          style={[
-            styles.searchInput,
-            isSearching && isLogging ? null : { marginLeft: 16 },
-          ]}
-          editable={isLogging}
-          autoCapitalize='none'
-          blurOnSubmit
-          placeholder={'Search location or zip code'}
-          placeholderTextColor='#435d8b'
-          onFocus={() => setIsSearching(true)}
-          onChangeText={destination => {
-            onChangeDestination(destination);
-          }}
-        />
-      </View>
-      <View style={styles.infoContainer}>
-        {renderMyLocationIcon()}
-        {renderAppInfoIcon()}
-      </View>
-    </Animated.View>
+    <Container>
+      <GooglePlacesAutocomplete
+        onSelect={getPlaceDetails}
+        inputStyle={styles.search}
+        suggestionsStyles={{container: {backgroundColor: 'white'}}}
+      />
+    </Container>
   );
 };
 
-const styles = StyleSheet.create({
-  // Container covers the entire screen
-  container: {
-    flexDirection: 'column',
-    color: colors.PRIMARY_TEXT,
+const styles = {
+  search: {
     zIndex: 999,
-    position: 'absolute',
-    top: 0,
-    width: '95%',
-    borderRadius: 6,
-    marginTop: 10,
+    fontSize: 14,
+    fontFamily: 'DMSans-Regular',
+    fontWeight: '500',
+    display: 'inline-block',
+    padding: '12px 20px',
+    margin: '8px 0',
+    border: '1px solid #ccc',
+    borderRradius: '4px',
+    boxSizing: 'border-box',
   },
   searchView: {
     backgroundColor: '#fff',
@@ -160,21 +167,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginTop: 32,
     marginLeft: 10,
-    flexDirection: 'row',
-    alignSelf: 'center',
     height: 48,
-    shadowColor: '#435d8b',
-    shadowOffset: {
-      width: 0,
-      height: 12,
-    },
-    shadowOpacity: 0.58,
-    shadowRadius: 16.0,
-    elevation: 60,
   },
   searchInput: {
-    flex: 1,
-    alignSelf: 'center',
     marginRight: 16,
     fontSize: 14,
     fontFamily: 'DMSans-Regular',
@@ -197,7 +192,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 10,
   },
-});
+};
 
 const mapStateToProps = state => ({
   isLogging: state.isLogging,

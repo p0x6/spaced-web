@@ -107,7 +107,7 @@ const MapViewComponent = ({
   return (
     <Map
       style={'mapbox://styles/mapbox/light-v10'}
-      center={[-122.4353884, 37.7767085]}
+      center={region}
       zoom={[16]}
       containerStyle={styles.map}
     >
@@ -126,50 +126,6 @@ const MapViewComponent = ({
         ))}
       </Cluster>
     </Map>
-    // <div style={styles.container}>
-    //   <Map
-    //     style='mapbox://styles/mapbox/light-v10'
-    //     touchZoomRotate={isLogging}
-    //     dragRotate={isLogging}
-    //     pitchWithRotate={isLogging}
-    //     dragPan={isLogging}>
-    //     {/*<MapboxGL.Camera*/}
-    //     {/*  zoomLevel={17}*/}
-    //     {/*  centerCoordinate={region}*/}
-    //     {/*  animationMode={'flyTo'}*/}
-    //     {/*  followUserLocation={!!navigation}*/}
-    //     {/*/>*/}
-    //     {/*<MapboxGL.UserLocation />*/}
-    //     {/*{renderRoute()}*/}
-    //
-    //     {/*<MapboxGL.ShapeSource*/}
-    //     {/*  id='userLocations'*/}
-    //     {/*  cluster*/}
-    //     {/*  clusterRadius={50}*/}
-    //     {/*  clusterMaxZoom={14}*/}
-    //     {/*  // url='https://spaced-app.s3.us-east-2.amazonaws.com/test3.geojson'*/}
-    //     {/*  shape={userMarkers || defaultGeoJSON}>*/}
-    //     {/*  <MapboxGL.SymbolLayer*/}
-    //     {/*    id='pointCount'*/}
-    //     {/*    style={layerStyles.clusterCount}*/}
-    //     {/*  />*/}
-    //
-    //     {/*  <MapboxGL.CircleLayer*/}
-    //     {/*    id='clusteredPoints'*/}
-    //     {/*    belowLayerID='pointCount'*/}
-    //     {/*    filter={['has', 'point_count']}*/}
-    //     {/*    style={layerStyles.clusteredPoints}*/}
-    //     {/*  />*/}
-    //
-    //     {/*  <MapboxGL.CircleLayer*/}
-    //     {/*    id='singlePoint'*/}
-    //     {/*    filter={['!', ['has', 'point_count']]}*/}
-    //     {/*    style={layerStyles.singlePoint}*/}
-    //     {/*  />*/}
-    //     {/*</MapboxGL.ShapeSource>*/}
-    //     {/*{renderAnnotations()}*/}
-    //   </Map>
-    // </div>
   );
 };
 

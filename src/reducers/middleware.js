@@ -19,21 +19,22 @@ const router = () => {
     )
       dispatch(setSearchingState(false));
 
-    if (
-      currState.isLogging !== nextState.isLogging &&
-      (currState.isLogging !== null || currState.isLogging !== undefined)
-    ) {
-      if (nextState.isLogging) {
-        LocationServices.start(action.callback);
-      } else {
-        LocationServices.stop();
-      }
-    }
+    // if (
+    //   currState.isLogging !== nextState.isLogging &&
+    //   (currState.isLogging !== null || currState.isLogging !== undefined)
+    // ) {
+    //   if (nextState.isLogging) {
+    //     LocationServices.start(action.callback);
+    //   } else {
+    //     LocationServices.stop();
+    //   }
+    // }
 
     if (
       (currState.mapLocation && currState.mapLocation.length !== 2) ||
       (nextState.mapLocation && nextState.mapLocation.length !== 2)
     ) {
+      console.log(currState.mapLocation, nextState.mapLocation)
       getCurrentPosition(
         location => {
           const { coords: {latitude, longitude} } = location;
